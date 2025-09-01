@@ -1,12 +1,13 @@
 ﻿
 
+using VehicleControl.API.Domain.Enums;
 using VehicleControl.API.Domain.Interfaces;
 using VehicleControl.API.DTOs.Requests;
 
 namespace VehicleControl.API.Extensions;
 
 public static class ApplicationExtensions
-{    
+{
     public static WebApplication MapEndpoints(this WebApplication app)
     {
         MapLoginEndpoints(app);
@@ -65,16 +66,22 @@ public static class ApplicationExtensions
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPatch("/{id:long}/role", () => { return Results.Ok(); })
-            .WithName("ChangeUserRole")
+        group.MapPatch("/{id:long}/role", async (long id, UserRole role, IUserService userService) =>
+        {
+            await userService.ChangeRole(id, role);
+            return Results.NoContent();
+        }).WithName("ChangeUserRole")
             .WithSummary("Change user role")
             .WithDescription("Endpoint to change the role of an existing user.")
-            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapDelete("/{id:long}", () => { return Results.Ok(); })
-            .WithName("DeleteUser")
+        group.MapDelete("/{id:long}", async (long id, IUserService userService) =>
+        {
+            await userService.Delete(id);
+            return Results.NoContent();
+        }).WithName("DeleteUser")
             .WithSummary("Delete a user")
             .WithDescription("Endpoint to delete a user from the system.")
             .Produces(StatusCodes.Status204NoContent)

@@ -69,14 +69,22 @@ internal class UserService : IUserService
         return _mapper.ToDataResponse(user);
     }
 
-    public Task ChangeRole(long id, UserRole role)
+    public async Task ChangeRole(long id, UserRole role)
     {
-        throw new NotImplementedException();
+        var user = await _userRepository.GetById(id);
+        if (user == null)
+            throw new Exception("Usuário não encontrado.");
+        await _userRepository.ChangeRole(user.Id, role);
+        await _unit.CommitAsync();
     }
 
-    public Task Delete(long id)
+    public async Task Delete(long id)
     {
-        throw new NotImplementedException();
+        var user = await _userRepository.GetById(id);
+        if (user == null)
+            throw new Exception("Usuário não encontrado.");
+        await _userRepository.Delete(user.Id);
+        await _unit.CommitAsync();
     }
 
 
