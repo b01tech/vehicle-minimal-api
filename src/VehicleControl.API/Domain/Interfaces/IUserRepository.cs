@@ -9,7 +9,7 @@ public interface IUserRepository
     Task<User> GetById(long id);
     Task<User> Create(User user);
     Task<User> Update(long id, string name, string email, string passwordHash);
-    Task<bool> ChangeRole(long id, UserRole role);
+    Task ChangeRole(long id, UserRole role);
     Task Delete(long id);
     Task<bool> EmailExists(string email);
     Task<bool> UsernameExists(string name);
