@@ -6,7 +6,7 @@ using VehicleControl.API.DTOs.Requests;
 namespace VehicleControl.API.Extensions;
 
 public static class ApplicationExtensions
-{
+{    
     public static WebApplication MapEndpoints(this WebApplication app)
     {
         MapLoginEndpoints(app);
@@ -44,7 +44,7 @@ public static class ApplicationExtensions
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/", async (RequestCreateUserDTO dto, IUserService userService) =>
+        group.MapPost("/", async (RequestUserDTO dto, IUserService userService) =>
         {
             var user = await userService.Create(dto);
             return Results.Created(string.Empty, user);
@@ -54,8 +54,11 @@ public static class ApplicationExtensions
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
 
-        group.MapPut("/{id:long}", () => { return Results.Ok(); })
-            .WithName("UpdateUser")
+        group.MapPut("/{id:long}", async (long id, RequestUpdateUserDTO request, IUserService userService) =>
+        {
+            var result = await userService.Update(id, request);
+            return Results.Ok(result);
+        }).WithName("UpdateUser")
             .WithSummary("Update an existing user")
             .WithDescription("Endpoint to update the details of an existing user.")
             .Produces(StatusCodes.Status200OK)

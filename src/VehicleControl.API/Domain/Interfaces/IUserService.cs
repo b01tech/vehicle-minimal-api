@@ -9,8 +9,8 @@ public interface IUserService
 {
     Task<string> DoLogin(RequestUserLoginDTO request);
     Task<ResponseDataUserDTO> GetById(long id);
-    Task<ResponseCreatedUserDTO> Create(RequestCreateUserDTO request);
-    Task<User> Update(long id, string name, string email, string password);
+    Task<ResponseUserDTO> Create(RequestUserDTO request);
+    Task<ResponseDataUserDTO> Update(long id, RequestUpdateUserDTO request);
     Task ChangeRole(long id, UserRole role);
     Task Delete(long id);
 }

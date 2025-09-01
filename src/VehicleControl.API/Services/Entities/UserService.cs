@@ -33,14 +33,14 @@ internal class UserService : IUserService
         var response = _mapper.ToDataResponse(user);
         return response;
     }
-    public async Task<ResponseCreatedUserDTO> Create(RequestCreateUserDTO request)
+    public async Task<ResponseUserDTO> Create(RequestUserDTO request)
     {
         if (await _userRepository.EmailExists(request.Email))
             throw new Exception("Email já está em uso.");
 
         if (await _userRepository.UsernameExists(request.Name))
             throw new Exception("Nome de usuário já está em uso.");
-       
+
         var requestHashed = HashPassword(request);
 
         var user = _mapper.ToEntity(requestHashed);
@@ -49,6 +49,26 @@ internal class UserService : IUserService
 
         return _mapper.ToCreatedResponse(user);
     }
+    public async Task<ResponseDataUserDTO> Update(long id, RequestUpdateUserDTO request)
+    {
+        var user = await _userRepository.GetById(id);
+        if (user == null)
+            throw new Exception("Usuário não encontrado.");
+
+        if (await _userRepository.EmailExists(request.Email))
+            throw new Exception("Email já está em uso.");
+
+        if (await _userRepository.UsernameExists(request.Name))
+            throw new Exception("Nome de usuário já está em uso.");
+
+        var requestHashed = HashPassword(request);
+
+        user = await _userRepository.Update(id, requestHashed.Name, requestHashed.Email, requestHashed.Password);
+        await _unit.CommitAsync();
+
+        return _mapper.ToDataResponse(user);
+    }
+
     public Task ChangeRole(long id, UserRole role)
     {
         throw new NotImplementedException();
@@ -59,19 +79,25 @@ internal class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    public Task<User> Update(long id, string name, string email, string password)
-    {
-        throw new NotImplementedException();
-    }
 
-    private RequestCreateUserDTO HashPassword(RequestCreateUserDTO request)
+
+    private RequestUserDTO HashPassword(RequestUserDTO request)
     {
         var passwordHash = _encrypter.Encrypt(request.Password);
-        return new RequestCreateUserDTO(
+        return new RequestUserDTO(
             request.Name,
             request.Email,
             passwordHash,
             request.Role
+        );
+    }
+    private RequestUpdateUserDTO HashPassword(RequestUpdateUserDTO request)
+    {
+        var passwordHash = _encrypter.Encrypt(request.Password);
+        return new RequestUpdateUserDTO(
+            request.Name,
+            request.Email,
+            passwordHash
         );
     }
 }

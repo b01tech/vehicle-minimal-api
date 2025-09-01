@@ -7,10 +7,10 @@ namespace VehicleControl.API.Services.Mapping;
 
 public class UserMapper : IUserMapper
 {
-    public User ToEntity(RequestCreateUserDTO dto) =>
+    public User ToEntity(RequestUserDTO dto) =>
          new(dto.Name.Trim(), dto.Email.Trim().ToLower(), dto.Password, dto.Role);
 
-    public ResponseCreatedUserDTO ToCreatedResponse(User entity) =>
+    public ResponseUserDTO ToCreatedResponse(User entity) =>
         new(entity.Id, entity.Name, entity.Email, entity.Role.ToString(), entity.CreatedAt);
 
     public ResponseDataUserDTO ToDataResponse(User entity) =>

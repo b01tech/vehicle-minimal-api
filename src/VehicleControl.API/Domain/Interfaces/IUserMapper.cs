@@ -6,7 +6,7 @@ namespace VehicleControl.API.Domain.Interfaces;
 
 public interface IUserMapper
 {
-    User ToEntity(RequestCreateUserDTO dto);
-    ResponseCreatedUserDTO ToCreatedResponse(User user);
+    User ToEntity(RequestUserDTO dto);
+    ResponseUserDTO ToCreatedResponse(User user);
     ResponseDataUserDTO ToDataResponse(User user);
 }
