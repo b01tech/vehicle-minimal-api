@@ -1,5 +1,8 @@
 ﻿
 
+using VehicleControl.API.Domain.Interfaces;
+using VehicleControl.API.DTOs.Requests;
+
 namespace VehicleControl.API.Extensions;
 
 public static class ApplicationExtensions
@@ -29,7 +32,7 @@ public static class ApplicationExtensions
     {
         var group = app.MapGroup("/users")
             .WithTags("Users")
-            .WithOpenApi();     
+            .WithOpenApi();
 
         group.MapGet("/{id:long}", () => { return Results.Ok(); })
             .WithName("GetUserById")
@@ -38,8 +41,11 @@ public static class ApplicationExtensions
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/", () => { return Results.Created(); })
-            .WithName("CreateUser")
+        group.MapPost("/", async (RequestCreateUserDTO dto, IUserService userService) =>
+        {
+            var user = await userService.Create(dto);
+            return Results.Created(string.Empty, user);
+        }).WithName("CreateUser")
             .WithSummary("Create a new user")
             .WithDescription("Endpoint to create a new user in the system.")
             .Produces(StatusCodes.Status201Created)
