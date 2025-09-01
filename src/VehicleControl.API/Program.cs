@@ -3,11 +3,11 @@ using VehicleControl.API.Extensions;
 DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddInfrastructure(builder.Configuration)
-    .AddServices(builder.Configuration);
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services
+    .AddInfrastructure(builder.Configuration)
+    .AddServices(builder.Configuration)
+    .AddJwtAuthentication(builder.Configuration)
+    .AddSwaggerDocumentation();
 
 var app = builder.Build();
 
@@ -18,6 +18,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapEndpoints();
 

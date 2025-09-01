@@ -1,8 +1,7 @@
-﻿
-
 using VehicleControl.API.Domain.Enums;
 using VehicleControl.API.Domain.Interfaces;
 using VehicleControl.API.DTOs.Requests;
+using VehicleControl.API.DTOs.Responses;
 
 namespace VehicleControl.API.Extensions;
 
@@ -10,24 +9,42 @@ public static class ApplicationExtensions
 {
     public static WebApplication MapEndpoints(this WebApplication app)
     {
-        MapLoginEndpoints(app);
+        MapAuthEndpoints(app);
         MapUsersEndpoints(app);
         return app;
     }
 
-    private static void MapLoginEndpoints(WebApplication app)
+    private static void MapAuthEndpoints(WebApplication app)
     {
-        var group = app.MapGroup("/login")
-            .WithTags("Login")
+        var group = app.MapGroup("/auth")
+            .WithTags("Authentication")
             .WithOpenApi();
 
-        group.MapPost("/", () => { return Results.Ok(); })
-            .WithName("Login")
+        group.MapPost("/", async (RequestLoginDTO request, IUserService userService) =>
+        {
+            try
+            {
+                var token = await userService.DoLogin(request);
+                var expiresAt = DateTime.UtcNow.AddMinutes(60);
+
+                var response = new ResponseLoginDTO(expiresAt, token);
+
+                return Results.Ok(response);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Results.Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+        }).WithName("Login")
             .WithSummary("User login")
-            .WithDescription("Endpoint to authenticate a user and return a JWT token.")
-            .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .WithDescription("Endpoint for user authentication and JWT token generation.")
+            .Produces<ResponseLoginDTO>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status400BadRequest);
     }
     private static void MapUsersEndpoints(WebApplication app)
     {
@@ -52,8 +69,11 @@ public static class ApplicationExtensions
         }).WithName("CreateUser")
             .WithSummary("Create a new user")
             .WithDescription("Endpoint to create a new user in the system.")
+            .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .Produces(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest);
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
 
         group.MapPut("/{id:long}", async (long id, RequestUpdateUserDTO request, IUserService userService) =>
         {
@@ -73,9 +93,12 @@ public static class ApplicationExtensions
         }).WithName("ChangeUserRole")
             .WithSummary("Change user role")
             .WithDescription("Endpoint to change the role of an existing user.")
+            .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
 
         group.MapDelete("/{id:long}", async (long id, IUserService userService) =>
         {
@@ -84,7 +107,10 @@ public static class ApplicationExtensions
         }).WithName("DeleteUser")
             .WithSummary("Delete a user")
             .WithDescription("Endpoint to delete a user from the system.")
+            .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
     }
 }

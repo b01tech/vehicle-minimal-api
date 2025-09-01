@@ -1,4 +1,3 @@
-using VehicleControl.API.Domain.Entities;
 using VehicleControl.API.Domain.Enums;
 using VehicleControl.API.Domain.Interfaces;
 using VehicleControl.API.DTOs.Requests;
@@ -12,18 +11,27 @@ internal class UserService : IUserService
     private readonly IUnitOfWork _unit;
     private readonly IEncrypter _encrypter;
     private readonly IUserMapper _mapper;
+    private readonly IJwtService _jwtService;
 
-    public UserService(IUserRepository userRepository, IUnitOfWork unit, IEncrypter encrypter, IUserMapper mapper)
+    public UserService(IUserRepository userRepository, IUnitOfWork unit, IEncrypter encrypter, IUserMapper mapper, IJwtService jwtService)
     {
         _userRepository = userRepository;
         _unit = unit;
         _encrypter = encrypter;
         _mapper = mapper;
+        _jwtService = jwtService;
     }
 
-    public Task<string> DoLogin(RequestUserLoginDTO request)
+    public async Task<string> DoLogin(RequestLoginDTO request)
     {
-        throw new NotImplementedException();
+        var passwordHash = _encrypter.Encrypt(request.Password);
+        var loginSuccess = await _userRepository.DoLogin(request.Email, passwordHash);
+
+        if (!loginSuccess)
+            throw new UnauthorizedAccessException("Email ou senha inválidos.");
+
+        var user = await _userRepository.GetByEmail(request.Email);
+        return _jwtService.GenerateToken(user);
     }
     public async Task<ResponseDataUserDTO> GetById(long id)
     {

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleControl.API.Domain.Entities;
 using VehicleControl.API.Domain.Enums;
 using VehicleControl.API.Domain.Interfaces;
@@ -27,6 +27,12 @@ internal class UserRepository : IUserRepository
     {
         var user = await _context.Users.FindAsync(id);
         return user ?? throw new Exception();
+    }
+    
+    public async Task<User> GetByEmail(string email)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Active);
+        return user ?? throw new Exception("Usuário não encontrado.");
     }
     public async Task<User> Create(User user)
     {

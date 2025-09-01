@@ -1,4 +1,5 @@
-﻿using VehicleControl.API.Domain.Interfaces;
+using VehicleControl.API.Domain.Interfaces;
+using VehicleControl.API.Services.Authentication;
 using VehicleControl.API.Services.Cryptography;
 using VehicleControl.API.Services.Entities;
 using VehicleControl.API.Services.Mapping;
@@ -11,6 +12,7 @@ public static class ServicesExtensions
     {
         RegisterMapping(services);
         RegisterEncryptService(services, config);
+        RegisterAuthenticationServices(services);
         RegisterEntityServices(services);
         return services;
     }
@@ -25,5 +27,10 @@ public static class ServicesExtensions
     private static void RegisterEncryptService(IServiceCollection services, IConfiguration config)
     {
         services.AddScoped<IEncrypter>(_ => new EncryptService(config));
+    }
+    
+    private static void RegisterAuthenticationServices(IServiceCollection services)
+    {
+        services.AddScoped<IJwtService, JwtService>();
     }
 }
