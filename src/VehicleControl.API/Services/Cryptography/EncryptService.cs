@@ -2,7 +2,7 @@
 using System.Text;
 using VehicleControl.API.Domain.Interfaces;
 
-namespace VehicleControl.API.Services;
+namespace VehicleControl.API.Services.Cryptography;
 
 internal class EncryptService : IEncrypter
 {

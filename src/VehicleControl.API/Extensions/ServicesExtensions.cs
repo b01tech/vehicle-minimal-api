@@ -1,5 +1,7 @@
 ﻿using VehicleControl.API.Domain.Interfaces;
-using VehicleControl.API.Services;
+using VehicleControl.API.Services.Cryptography;
+using VehicleControl.API.Services.Entities;
+using VehicleControl.API.Services.Mapping;
 
 namespace VehicleControl.API.Extensions;
 
@@ -18,7 +20,7 @@ public static class ServicesExtensions
     }
     private static void RegisterMapping(IServiceCollection services)
     {
-        services.AddScoped<IMapper, MappingService>();
+        services.AddScoped<IUserMapper, UserMapper>();
     }
     private static void RegisterEncryptService(IServiceCollection services, IConfiguration config)
     {
