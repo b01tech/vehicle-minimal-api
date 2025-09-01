@@ -8,7 +8,7 @@ namespace VehicleControl.API.Domain.Interfaces;
 public interface IUserService
 {
     Task<string> DoLogin(RequestUserLoginDTO request);
-    Task<User> GetById(long id);
+    Task<ResponseDataUserDTO> GetById(long id);
     Task<ResponseCreatedUserDTO> Create(RequestCreateUserDTO request);
     Task<User> Update(long id, string name, string email, string password);
     Task ChangeRole(long id, UserRole role);

@@ -34,8 +34,11 @@ public static class ApplicationExtensions
             .WithTags("Users")
             .WithOpenApi();
 
-        group.MapGet("/{id:long}", () => { return Results.Ok(); })
-            .WithName("GetUserById")
+        group.MapGet("/{id:long}", async (long id, IUserService userService) =>
+        {
+            var user = await userService.GetById(id);
+            return Results.Ok(user);
+        }).WithName("GetUserById")
             .WithSummary("Get user by ID")
             .WithDescription("Endpoint to retrieve a user by their unique ID.")
             .Produces(StatusCodes.Status200OK)
