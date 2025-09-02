@@ -24,4 +24,6 @@ app.UseAuthorization();
 
 app.MapEndpoints();
 
+app.ApplyMigrations();
+
 app.Run();

@@ -1,19 +1,31 @@
+using Microsoft.EntityFrameworkCore;
 using VehicleControl.API.Domain.Enums;
 using VehicleControl.API.Domain.Interfaces;
 using VehicleControl.API.DTOs.Requests;
 using VehicleControl.API.DTOs.Responses;
+using VehicleControl.API.Infra.Data;
 
 namespace VehicleControl.API.Extensions;
 
 public static class ApplicationExtensions
 {
+    public static WebApplication ApplyMigrations(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        if (db.Database.GetPendingMigrations().Any())
+        {
+            db.Database.Migrate();
+        }
+        return app;
+    }
+
     public static WebApplication MapEndpoints(this WebApplication app)
     {
         MapAuthEndpoints(app);
         MapUsersEndpoints(app);
         return app;
     }
-
     private static void MapAuthEndpoints(WebApplication app)
     {
         var group = app.MapGroup("/auth")
