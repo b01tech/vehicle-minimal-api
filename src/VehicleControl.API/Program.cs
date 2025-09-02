@@ -1,3 +1,4 @@
+using VehicleControl.API.Domain.Interfaces;
 using VehicleControl.API.Extensions;
 
 DotNetEnv.Env.Load();

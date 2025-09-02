@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using VehicleControl.API.Domain.Entities;
 using VehicleControl.API.Domain.Enums;
 using VehicleControl.API.Domain.Interfaces;
 using VehicleControl.API.DTOs.Requests;
@@ -17,7 +19,31 @@ public static class ApplicationExtensions
         {
             db.Database.Migrate();
         }
+        SeedData(scope.ServiceProvider);
+
         return app;
+    }
+
+    public static void SeedData(IServiceProvider services)
+    {
+        using var scope = services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var encrypter = scope.ServiceProvider.GetRequiredService<IEncrypter>();
+
+        if (!db.Users.Any(u => u.Name == "admin"))
+        {
+            var hasher = new PasswordHasher<User>();
+
+            var admin = new User(
+                name: "admin",
+                email: "admin@admin.com",
+                passwordHash: encrypter.Encrypt("admin"),
+                role: UserRole.Admin
+            );
+
+            db.Users.Add(admin);
+            db.SaveChanges();
+        }
     }
 
     public static WebApplication MapEndpoints(this WebApplication app)
