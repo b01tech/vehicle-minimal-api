@@ -60,23 +60,12 @@ public static class ApplicationExtensions
 
         group.MapPost("/", async (RequestLoginDTO request, IUserService userService) =>
         {
-            try
-            {
-                var token = await userService.DoLogin(request);
-                var expiresAt = DateTime.UtcNow.AddMinutes(60);
+            var token = await userService.DoLogin(request);
+            var expiresAt = DateTime.UtcNow.AddMinutes(60);
+            var response = new ResponseLoginDTO(expiresAt, token);
 
-                var response = new ResponseLoginDTO(expiresAt, token);
+            return Results.Ok(response);
 
-                return Results.Ok(response);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Results.Unauthorized();
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
         }).WithName("Login")
             .WithSummary("User login")
             .WithDescription("Endpoint for user authentication and JWT token generation.")

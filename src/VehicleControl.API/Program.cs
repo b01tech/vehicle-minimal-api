@@ -1,4 +1,4 @@
-using VehicleControl.API.Domain.Interfaces;
+using VehicleControl.API.Exceptions;
 using VehicleControl.API.Extensions;
 
 DotNetEnv.Env.Load();
@@ -19,6 +19,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseExceptionHandlerMiddleware();
 
 app.UseAuthentication();
 app.UseAuthorization();

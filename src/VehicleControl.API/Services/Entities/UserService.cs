@@ -2,6 +2,7 @@ using VehicleControl.API.Domain.Enums;
 using VehicleControl.API.Domain.Interfaces;
 using VehicleControl.API.DTOs.Requests;
 using VehicleControl.API.DTOs.Responses;
+using VehicleControl.API.Exceptions;
 
 namespace VehicleControl.API.Services.Entities;
 
@@ -28,26 +29,24 @@ internal class UserService : IUserService
         var loginSuccess = await _userRepository.DoLogin(request.Email, passwordHash);
 
         if (!loginSuccess)
-            throw new UnauthorizedAccessException("Email ou senha inválidos.");
+            throw new UnauthorizedException(ResourceErrorMessages.INVALID_CREDENTIALS);
 
         var user = await _userRepository.GetByEmail(request.Email);
         return _jwtService.GenerateToken(user);
     }
     public async Task<ResponseDataUserDTO> GetById(long id)
     {
-        var user = await _userRepository.GetById(id);
-        if (user == null)
-            throw new Exception("Usuário não encontrado.");
+        var user = await _userRepository.GetById(id) ?? throw new NotFoundException(ResourceErrorMessages.USER_NOT_FOUND);
         var response = _mapper.ToDataResponse(user);
         return response;
     }
     public async Task<ResponseUserDTO> Create(RequestUserDTO request)
     {
         if (await _userRepository.EmailExists(request.Email))
-            throw new Exception("Email já está em uso.");
+            throw new InputInvalidException(ResourceErrorMessages.EMAIL_ALREADY_REGISTERED);
 
         if (await _userRepository.UsernameExists(request.Name))
-            throw new Exception("Nome de usuário já está em uso.");
+            throw new InputInvalidException(ResourceErrorMessages.NAME_ALREADY_REGISTERED);
 
         var requestHashed = HashPassword(request);
 
@@ -59,15 +58,12 @@ internal class UserService : IUserService
     }
     public async Task<ResponseDataUserDTO> Update(long id, RequestUpdateUserDTO request)
     {
-        var user = await _userRepository.GetById(id);
-        if (user == null)
-            throw new Exception("Usuário não encontrado.");
-
+        var user = await _userRepository.GetById(id) ?? throw new NotFoundException(ResourceErrorMessages.USER_NOT_FOUND);
         if (await _userRepository.EmailExists(request.Email))
-            throw new Exception("Email já está em uso.");
+            throw new InputInvalidException(ResourceErrorMessages.EMAIL_ALREADY_REGISTERED);
 
         if (await _userRepository.UsernameExists(request.Name))
-            throw new Exception("Nome de usuário já está em uso.");
+            throw new InputInvalidException(ResourceErrorMessages.NAME_ALREADY_REGISTERED);
 
         var requestHashed = HashPassword(request);
 
@@ -79,23 +75,18 @@ internal class UserService : IUserService
 
     public async Task ChangeRole(long id, UserRole role)
     {
-        var user = await _userRepository.GetById(id);
-        if (user == null)
-            throw new Exception("Usuário não encontrado.");
+        var user = await _userRepository.GetById(id) ?? throw new NotFoundException(ResourceErrorMessages.USER_NOT_FOUND);
+
         await _userRepository.ChangeRole(user.Id, role);
         await _unit.CommitAsync();
     }
 
     public async Task Delete(long id)
     {
-        var user = await _userRepository.GetById(id);
-        if (user == null)
-            throw new Exception("Usuário não encontrado.");
+        var user = await _userRepository.GetById(id) ?? throw new NotFoundException(ResourceErrorMessages.USER_NOT_FOUND);
         await _userRepository.Delete(user.Id);
         await _unit.CommitAsync();
     }
-
-
 
     private RequestUserDTO HashPassword(RequestUserDTO request)
     {

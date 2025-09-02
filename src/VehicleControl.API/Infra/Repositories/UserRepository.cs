@@ -26,13 +26,13 @@ internal class UserRepository : IUserRepository
     public async Task<User> GetById(long id)
     {
         var user = await _context.Users.FindAsync(id);
-        return user ?? throw new Exception();
+        return user;
     }
     
     public async Task<User> GetByEmail(string email)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Active);
-        return user ?? throw new Exception("Usuário não encontrado.");
+        return user;
     }
     public async Task<User> Create(User user)
     {
