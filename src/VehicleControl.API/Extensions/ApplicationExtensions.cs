@@ -50,6 +50,7 @@ public static class ApplicationExtensions
     {
         MapAuthEndpoints(app);
         MapUsersEndpoints(app);
+        MapVehiclesEndpoints(app);
         return app;
     }
     private static void MapAuthEndpoints(WebApplication app)
@@ -134,6 +135,69 @@ public static class ApplicationExtensions
         }).WithName("DeleteUser")
             .WithSummary("Delete a user")
             .WithDescription("Endpoint to delete a user from the system.")
+            .RequireAuthorization(policy => policy.RequireRole("Admin"))
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
+    }
+    private static void MapVehiclesEndpoints(WebApplication app)
+    {
+        var group = app.MapGroup("/vehicles")
+            .WithTags("Vehicles")
+            .WithOpenApi();
+
+        group.MapGet("/list/{page:int}", async (IVehicleService vehicleService, int page = 1) =>
+        {
+            var vehicles = await vehicleService.GetAll(page);
+            return Results.Ok(vehicles);
+        }).WithName("GetAllVehicles")
+            .WithSummary("Get all vehicles with pagination")
+            .WithDescription("Endpoint to retrieve a paginated list of vehicles.")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status200OK);
+        group.MapGet("/{id:long}", async (long id, IVehicleService vehicleService) =>
+        {
+            var vehicle = await vehicleService.GetById(id);
+            return Results.Ok(vehicle);
+        }).WithName("GetVehicleById")
+            .WithSummary("Get vehicle by ID")
+            .WithDescription("Endpoint to retrieve a vehicle by its unique ID.")
+            .RequireAuthorization()
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
+        group.MapPost("/", async (RequestVehicleDTO dto, IVehicleService vehicleService) =>
+        {
+            var vehicle = await vehicleService.Create(dto);
+            return Results.Created(string.Empty, vehicle);
+        }).WithName("CreateVehicle")
+            .WithSummary("Create a new vehicle")
+            .WithDescription("Endpoint to create a new vehicle in the system.")
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "User"))
+            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
+        group.MapPut("/{id:long}", async (long id, RequestVehicleDTO request, IVehicleService vehicleService) =>
+        {
+            var result = await vehicleService.Update(id, request);
+            return Results.Ok(result);
+        }).WithName("UpdateVehicle")
+            .WithSummary("Update an existing vehicle")
+            .WithDescription("Endpoint to update the details of an existing vehicle.")
+            .RequireAuthorization(policy => policy.RequireRole("Admin", "User"))
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
+        group.MapDelete("/{id:long}", async (long id, IVehicleService vehicleService) =>
+        {
+            await vehicleService.Delete(id);
+            return Results.NoContent();
+        }).WithName("DeleteVehicle")
+            .WithSummary("Delete a vehicle")
+            .WithDescription("Endpoint to delete a vehicle from the system.")
             .RequireAuthorization(policy => policy.RequireRole("Admin"))
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status404NotFound)

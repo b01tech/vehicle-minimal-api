@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using VehicleControl.API.Domain.Interfaces;
 using VehicleControl.API.Infra.Data;
@@ -24,5 +24,6 @@ public static class InfrastrutureExtensions
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IVehicleRepository, VehicleRepository>();
     }
 }

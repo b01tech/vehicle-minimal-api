@@ -19,10 +19,12 @@ public static class ServicesExtensions
     private static void RegisterEntityServices(IServiceCollection services)
     {
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IVehicleService, VehicleService>();
     }
     private static void RegisterMapping(IServiceCollection services)
     {
         services.AddScoped<IUserMapper, UserMapper>();
+        services.AddScoped<IVehicleMapper, VehicleMapper>();
     }
     private static void RegisterEncryptService(IServiceCollection services, IConfiguration config)
     {
